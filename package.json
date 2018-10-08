@@ -8,7 +8,9 @@
   "license": "MIT",
   "devDependencies": {
     "@types/react": "^16.0.40",
-    "@types/react-dom": "^16.0.4"
+    "@types/react-dom": "^16.0.4",
+    "@types/react-router": "^4.0.22",
+    "@types/react-router-dom": "^4.2.4"
   },
   "dependencies": {
     "react": "^16.2.0",
