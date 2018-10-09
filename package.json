@@ -6,6 +6,11 @@
   "repository": "https://github.com/kuro-kuroite/chat_app.git",
   "author": "kuro-kuroite <26164343+kuro-kuroite@users.noreply.github.com>",
   "license": "MIT",
+  "homepage": "http://kuro-kuroite.github.io/chat_app",
+  "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -b master -d build"
+  },
   "devDependencies": {
     "@types/react": "^16.0.40",
     "@types/react-dom": "^16.0.4",
