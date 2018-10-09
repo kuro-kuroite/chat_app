@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { fetchMessages, Message } from '../client';
-import { Segment, Image, Comment, Header } from 'semantic-ui-react';
+import { Dimmer, Loader, Segment, Image, Comment, Header } from 'semantic-ui-react';
+import Axios, { CancelToken, CancelTokenSource } from 'axios';
 
 interface MessageFeedProps {
   channelName: string;
@@ -10,17 +11,29 @@ interface MessageFeedProps {
 
 interface MessageFeedState {
   messages: Message[];
+  isLoading?: boolean;
 }
 
 export class MessageFeed extends React.Component<MessageFeedProps, MessageFeedState> {
+  private cancelTokenSource: CancelTokenSource;
+
   constructor(props: MessageFeedProps) {
     super(props);
     this.state = {
-      messages: []
+      messages: [],
+      isLoading: false
     };
+    this.cancelTokenSource = null;
   }
 
   public render() {
+    if(this.state.isLoading) {
+      return (
+        <Dimmer active>
+          <Loader />
+        </Dimmer>
+      );
+    }
     return (
       <Segment basic>
         <Comment.Group>
@@ -46,43 +59,60 @@ export class MessageFeed extends React.Component<MessageFeedProps, MessageFeedSt
 
   private fetchMessages = (channelName: string) => {
     this.props.setShouldReload(false);
-    fetchMessages(channelName)
+
+    this.setState({ isLoading: true });
+
+    this.cancelTokenSource = Axios.CancelToken.source();
+    fetchMessages(channelName, {}, this.cancelTokenSource.token)
       .then(responce => {
         this.setState({ messages: responce.data.messages });
       })
       .catch(err => {
         // console.log(err);
-        // HACK: 今回は，チャットサーバを用意していないため，errorが起こる仕様を
-        //          を利用して，サンプルメッセージを生成
-        const messages: Message[] = [
-          {
-            'id': '2',
-            'body': 'you send a some message',
-            'user': {
-              'id': 'robot',
-              'name': 'Robot',
-              'avatar': '',
+        if(Axios.isCancel(err)) {
+          console.log(err);
+        } else {
+          // HACK: 今回は，チャットサーバを用意していないため，errorが起こる仕様を
+          //          を利用して，サンプルメッセージを生成
+          const messages: Message[] = [
+            {
+              'id': '2',
+              'body': 'you send a some message',
+              'user': {
+                'id': 'robot',
+                'name': 'Robot',
+                'avatar': '',
+              },
+              'date': `${(new Date()).toJSON()}`,
             },
-            'date': `${(new Date()).toJSON()}`,
-          },
-          {
-            'id': '1',
-            'body': `welcome to #${channelName} channel!!`,
-            'user': {
-              'id': 'robot',
-              'name': 'Robot',
-              'avatar': '',
+            {
+              'id': '1',
+              'body': `welcome to #${channelName} channel!!`,
+              'user': {
+                'id': 'robot',
+                'name': 'Robot',
+                'avatar': '',
+              },
+              'date': `${(new Date()).toJSON()}`,
             },
-            'date': `${(new Date()).toJSON()}`,
-          },
-        ];
+          ];
 
-        this.setState({ messages: messages });
+          this.setState({
+            messages: messages,
+            isLoading: false
+          });
+        }
       });
   }
 
   public componentDidMount() {
     this.fetchMessages(this.props.channelName);
+  }
+
+  public componentWillMount() {
+    if(this.cancelTokenSource) {
+      this.cancelTokenSource.cancel('This component has been unmounted');
+    }
   }
 
   public componentDidUpdate(prevProps: MessageFeedProps) {
