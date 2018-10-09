@@ -8,6 +8,7 @@
   "license": "MIT",
   "homepage": "http://kuro-kuroite.github.io/chat_app",
   "scripts": {
+    "build": "webpack --mode production --output-path ./build/dist/js && cp dist/index.html build/ && cp -r dist/img/ build/dist",
     "predeploy": "npm run build",
     "deploy": "gh-pages -b master -d build"
   },
